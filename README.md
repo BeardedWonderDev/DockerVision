@@ -8,9 +8,9 @@ Local macOS agent that exposes a curated REST API for monitoring and controlling
 - List/inspect containers.
 - Start/stop/restart containers.
 - Fetch container logs with tail/follow options.
+- Stream Docker events via SSE (`/events`) with optional filters.
 
 ## Planned
-- Event streaming (SSE/WebSocket).
 - Auth (bearer or mTLS) and optional TLS listener.
 - Prometheus metrics.
 - launchd packaging for auto-start.

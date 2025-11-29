@@ -14,6 +14,7 @@ import (
 	"github.com/beardedwonder/dockervision-agent/internal/config"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/api/types/system"
 	"github.com/docker/docker/errdefs"
 )
@@ -31,6 +32,8 @@ type fakeDocker struct {
 	restartErr error
 	logReader  io.ReadCloser
 	logErr     error
+	eventsCh   <-chan events.Message
+	eventsErr  <-chan error
 }
 
 func (f *fakeDocker) Ping(ctx context.Context) error {
@@ -80,6 +83,20 @@ func (f *fakeDocker) ContainerLogs(ctx context.Context, id string, opts containe
 		return io.NopCloser(strings.NewReader("")), nil
 	}
 	return f.logReader, nil
+}
+
+func (f *fakeDocker) Events(ctx context.Context, opts types.EventsOptions) (<-chan events.Message, <-chan error) {
+	if f.eventsCh == nil {
+		ch := make(chan events.Message)
+		close(ch)
+		f.eventsCh = ch
+	}
+	if f.eventsErr == nil {
+		errCh := make(chan error)
+		close(errCh)
+		f.eventsErr = errCh
+	}
+	return f.eventsCh, f.eventsErr
 }
 
 func TestHealthOK(t *testing.T) {
@@ -214,5 +231,44 @@ func TestContainerLogs(t *testing.T) {
 	}
 	if !strings.Contains(rec.Body.String(), "line2") {
 		t.Fatalf("unexpected logs body: %q", rec.Body.String())
+	}
+}
+
+func TestAuthRequired(t *testing.T) {
+	cfg := config.Config{ListenAddr: "127.0.0.1:0", AuthToken: "secret"}
+	s := NewServer(cfg, &fakeDocker{}, nil)
+	req := httptest.NewRequest(http.MethodGet, "/containers", nil)
+	rec := httptest.NewRecorder()
+	s.Handler().ServeHTTP(rec, req)
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("expected 401, got %d", rec.Code)
+	}
+
+	req2 := httptest.NewRequest(http.MethodGet, "/containers", nil)
+	req2.Header.Set("Authorization", "Bearer secret")
+	rec2 := httptest.NewRecorder()
+	s.Handler().ServeHTTP(rec2, req2)
+	if rec2.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec2.Code)
+	}
+}
+
+func TestEventsStream(t *testing.T) {
+	evCh := make(chan events.Message, 1)
+	errCh := make(chan error)
+	evCh <- events.Message{Type: events.ContainerEventType, Action: "start", ID: "abc123"}
+	close(evCh)
+	close(errCh)
+
+	s := NewServer(config.Config{ListenAddr: "127.0.0.1:0"}, &fakeDocker{eventsCh: evCh, eventsErr: errCh}, nil)
+	req := httptest.NewRequest(http.MethodGet, "/events", nil)
+	rec := httptest.NewRecorder()
+	s.Handler().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+	if !strings.Contains(strings.ToLower(rec.Body.String()), `"action":"start"`) {
+		t.Fatalf("expected event payload, got %q", rec.Body.String())
 	}
 }

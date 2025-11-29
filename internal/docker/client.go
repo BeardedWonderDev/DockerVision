@@ -8,6 +8,7 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/api/types/system"
 	"github.com/docker/docker/client"
 )
@@ -22,6 +23,7 @@ type Client interface {
 	StopContainer(ctx context.Context, id string, timeout *time.Duration) error
 	RestartContainer(ctx context.Context, id string, timeout *time.Duration) error
 	ContainerLogs(ctx context.Context, id string, opts container.LogsOptions) (io.ReadCloser, error)
+	Events(ctx context.Context, opts types.EventsOptions) (<-chan events.Message, <-chan error)
 	Close() error
 }
 
@@ -95,6 +97,10 @@ func (e *Engine) RestartContainer(ctx context.Context, id string, timeout *time.
 
 func (e *Engine) ContainerLogs(ctx context.Context, id string, opts container.LogsOptions) (io.ReadCloser, error) {
 	return e.cli.ContainerLogs(ctx, id, opts)
+}
+
+func (e *Engine) Events(ctx context.Context, opts types.EventsOptions) (<-chan events.Message, <-chan error) {
+	return e.cli.Events(ctx, opts)
 }
 
 func (e *Engine) Close() error {

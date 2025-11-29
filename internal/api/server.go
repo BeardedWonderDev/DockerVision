@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"crypto/subtle"
 	"encoding/json"
 	"errors"
 	"io"
@@ -13,7 +14,9 @@ import (
 
 	"github.com/beardedwonder/dockervision-agent/internal/config"
 	"github.com/beardedwonder/dockervision-agent/internal/docker"
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 )
 
@@ -47,13 +50,14 @@ func (s *Server) Handler() http.Handler {
 
 func (s *Server) routes() {
 	s.mux.HandleFunc("GET /health", s.handleHealth)
-	s.mux.HandleFunc("GET /system/info", s.handleSystemInfo)
-	s.mux.HandleFunc("GET /containers", s.handleListContainers)
-	s.mux.HandleFunc("GET /containers/{id}", s.handleInspectContainer)
-	s.mux.HandleFunc("POST /containers/{id}/start", s.handleStartContainer)
-	s.mux.HandleFunc("POST /containers/{id}/stop", s.handleStopContainer)
-	s.mux.HandleFunc("POST /containers/{id}/restart", s.handleRestartContainer)
-	s.mux.HandleFunc("GET /containers/{id}/logs", s.handleContainerLogs)
+	s.mux.HandleFunc("GET /system/info", s.requireTokenIfSet(s.handleSystemInfo))
+	s.mux.HandleFunc("GET /containers", s.requireTokenIfSet(s.handleListContainers))
+	s.mux.HandleFunc("GET /containers/{id}", s.requireTokenIfSet(s.handleInspectContainer))
+	s.mux.HandleFunc("POST /containers/{id}/start", s.requireTokenIfSet(s.handleStartContainer))
+	s.mux.HandleFunc("POST /containers/{id}/stop", s.requireTokenIfSet(s.handleStopContainer))
+	s.mux.HandleFunc("POST /containers/{id}/restart", s.requireTokenIfSet(s.handleRestartContainer))
+	s.mux.HandleFunc("GET /containers/{id}/logs", s.requireTokenIfSet(s.handleContainerLogs))
+	s.mux.HandleFunc("GET /events", s.requireTokenIfSet(s.handleEvents))
 }
 
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
@@ -273,6 +277,108 @@ func writeJSON(w http.ResponseWriter, status int, payload any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	_ = json.NewEncoder(w).Encode(payload)
+}
+
+func (s *Server) requireTokenIfSet(next http.HandlerFunc) http.HandlerFunc {
+	if strings.TrimSpace(s.cfg.AuthToken) == "" {
+		return next
+	}
+	return func(w http.ResponseWriter, r *http.Request) {
+		if !s.authorized(r) {
+			w.Header().Set("WWW-Authenticate", "Bearer")
+			writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+			return
+		}
+		next(w, r)
+	}
+}
+
+func (s *Server) authorized(r *http.Request) bool {
+	header := r.Header.Get("Authorization")
+	const prefix = "Bearer "
+	if !strings.HasPrefix(header, prefix) {
+		return false
+	}
+	token := strings.TrimSpace(strings.TrimPrefix(header, prefix))
+	if len(token) != len(s.cfg.AuthToken) {
+		return false
+	}
+	return subtle.ConstantTimeCompare([]byte(token), []byte(s.cfg.AuthToken)) == 1
+}
+
+func (s *Server) handleEvents(w http.ResponseWriter, r *http.Request) {
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		http.Error(w, "streaming unsupported", http.StatusInternalServerError)
+		return
+	}
+
+	args := filters.NewArgs()
+	q := r.URL.Query()
+	if v := strings.TrimSpace(q.Get("type")); v != "" {
+		args.Add("type", v)
+	}
+	if v := strings.TrimSpace(q.Get("action")); v != "" {
+		args.Add("event", v)
+	}
+	if v := strings.TrimSpace(q.Get("container")); v != "" {
+		args.Add("container", v)
+	}
+	if v := strings.TrimSpace(q.Get("image")); v != "" {
+		args.Add("image", v)
+	}
+
+	ctx, cancel := context.WithCancel(r.Context())
+	defer cancel()
+
+	msgCh, errCh := s.docker.Events(ctx, types.EventsOptions{
+		Filters: args,
+		Since:   q.Get("since"),
+	})
+
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+
+	heartbeat := time.NewTicker(15 * time.Second)
+	defer heartbeat.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case err := <-errCh:
+			if err != nil && !errors.Is(err, context.Canceled) {
+				sendSSE(w, flusher, "error", map[string]string{"error": err.Error()})
+			}
+			return
+		case ev := <-msgCh:
+			if ev.Type == "" && ev.Action == "" && ev.ID == "" {
+				return
+			}
+			sendSSE(w, flusher, "event", ev)
+		case <-heartbeat.C:
+			sendSSE(w, flusher, "heartbeat", "ok")
+		}
+	}
+}
+
+func sendSSE(w http.ResponseWriter, flusher http.Flusher, event string, data any) {
+	var sb strings.Builder
+	if event != "" {
+		sb.WriteString("event: ")
+		sb.WriteString(event)
+		sb.WriteString("\n")
+	}
+	if data != nil {
+		bytes, _ := json.Marshal(data)
+		sb.WriteString("data: ")
+		sb.Write(bytes)
+		sb.WriteString("\n")
+	}
+	sb.WriteString("\n")
+	_, _ = io.WriteString(w, sb.String())
+	flusher.Flush()
 }
 
 func parseBoolDefault(val string, def bool) bool {
