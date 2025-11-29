@@ -20,6 +20,7 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 	"github.com/gorilla/websocket"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 // Server hosts the HTTP API for DockerVision.
@@ -68,6 +69,11 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("GET /containers/{id}/logs", s.requireTokenIfSet(s.handleContainerLogs))
 	s.mux.HandleFunc("GET /events", s.requireTokenIfSet(s.handleEvents))
 	s.mux.HandleFunc("GET /ws", s.requireTokenIfSet(s.handleWebsocket))
+	if strings.TrimSpace(s.cfg.AuthToken) != "" {
+		s.mux.Handle("/metrics", s.requireTokenIfSetHandler(promhttp.Handler()))
+	} else {
+		s.mux.Handle("/metrics", promhttp.Handler())
+	}
 }
 
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
@@ -301,6 +307,20 @@ func (s *Server) requireTokenIfSet(next http.HandlerFunc) http.HandlerFunc {
 		}
 		next(w, r)
 	}
+}
+
+func (s *Server) requireTokenIfSetHandler(next http.Handler) http.Handler {
+	if strings.TrimSpace(s.cfg.AuthToken) == "" {
+		return next
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !s.authorized(r) {
+			w.Header().Set("WWW-Authenticate", "Bearer")
+			writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 func (s *Server) authorized(r *http.Request) bool {

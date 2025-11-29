@@ -15,24 +15,30 @@ const (
 // Config holds runtime configuration for the agent.
 // Input is treated as untrusted; validate before use.
 type Config struct {
-	ListenAddr  string
-	AuthToken   string
-	TLSCertPath string
-	TLSKeyPath  string
-	DockerHost  string
-	LogLevel    string
+	ListenAddr   string
+	AuthToken    string
+	TLSCertPath  string
+	TLSKeyPath   string
+	TLSClientCA  string
+	DockerHost   string
+	LogLevel     string
+	OTLPEndpoint string
+	OTLPInsecure bool
 }
 
 // FromEnv builds a Config using environment variables and defaults.
 // Flag parsing can override these values.
 func FromEnv() Config {
 	return Config{
-		ListenAddr:  getenvOrDefault("DV_LISTEN_ADDR", defaultListen),
-		AuthToken:   os.Getenv("DV_AUTH_TOKEN"),
-		TLSCertPath: os.Getenv("DV_TLS_CERT"),
-		TLSKeyPath:  os.Getenv("DV_TLS_KEY"),
-		DockerHost:  os.Getenv("DOCKER_HOST"),
-		LogLevel:    strings.ToLower(getenvOrDefault("DV_LOG_LEVEL", defaultLevel)),
+		ListenAddr:   getenvOrDefault("DV_LISTEN_ADDR", defaultListen),
+		AuthToken:    os.Getenv("DV_AUTH_TOKEN"),
+		TLSCertPath:  os.Getenv("DV_TLS_CERT"),
+		TLSKeyPath:   os.Getenv("DV_TLS_KEY"),
+		TLSClientCA:  os.Getenv("DV_TLS_CLIENT_CA"),
+		DockerHost:   os.Getenv("DOCKER_HOST"),
+		LogLevel:     strings.ToLower(getenvOrDefault("DV_LOG_LEVEL", defaultLevel)),
+		OTLPEndpoint: os.Getenv("DV_OTEL_ENDPOINT"),
+		OTLPInsecure: strings.ToLower(os.Getenv("DV_OTEL_INSECURE")) == "true",
 	}
 }
 

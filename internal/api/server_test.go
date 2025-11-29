@@ -277,6 +277,16 @@ func TestContainerLogs(t *testing.T) {
 	}
 }
 
+func TestMetricsEndpoint(t *testing.T) {
+	s := NewServer(config.Config{ListenAddr: "127.0.0.1:0"}, &fakeDocker{}, nil)
+	req := httptest.NewRequest(http.MethodGet, "/metrics", nil)
+	rec := httptest.NewRecorder()
+	s.Handler().ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+}
+
 func TestAuthRequired(t *testing.T) {
 	cfg := config.Config{ListenAddr: "127.0.0.1:0", AuthToken: "secret"}
 	s := NewServer(cfg, &fakeDocker{}, nil)
