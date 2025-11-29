@@ -1,10 +1,12 @@
 package api
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"errors"
 	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -19,6 +21,13 @@ import (
 	"github.com/docker/docker/errdefs"
 	"github.com/gorilla/websocket"
 )
+
+type nopWriteCloser struct {
+	w io.Writer
+}
+
+func (n nopWriteCloser) Write(p []byte) (int, error) { return n.w.Write(p) }
+func (n nopWriteCloser) Close() error                { return nil }
 
 type fakeDocker struct {
 	pingErr     error
@@ -36,6 +45,9 @@ type fakeDocker struct {
 	eventsCh    <-chan events.Message
 	eventsErr   <-chan error
 	startCalled bool
+	execAttach  types.HijackedResponse
+	execCreate  types.IDResponse
+	execErr     error
 }
 
 func (f *fakeDocker) Ping(ctx context.Context) error {
@@ -100,6 +112,34 @@ func (f *fakeDocker) Events(ctx context.Context, opts types.EventsOptions) (<-ch
 		f.eventsErr = errCh
 	}
 	return f.eventsCh, f.eventsErr
+}
+
+func (f *fakeDocker) ContainerExecCreate(ctx context.Context, id string, opts types.ExecConfig) (types.IDResponse, error) {
+	if f.execErr != nil {
+		return types.IDResponse{}, f.execErr
+	}
+	if f.execCreate.ID == "" {
+		return types.IDResponse{ID: "exec123"}, nil
+	}
+	return f.execCreate, nil
+}
+
+func (f *fakeDocker) ContainerExecAttach(ctx context.Context, execID string, opts types.ExecStartCheck) (types.HijackedResponse, error) {
+	if f.execErr != nil {
+		return types.HijackedResponse{}, f.execErr
+	}
+	if f.execAttach.Reader == nil {
+		c1, _ := net.Pipe()
+		return types.HijackedResponse{
+			Conn:   c1,
+			Reader: bufio.NewReader(strings.NewReader("output\n")),
+		}, nil
+	}
+	return f.execAttach, nil
+}
+
+func (f *fakeDocker) ContainerExecResize(ctx context.Context, execID string, height, width uint) error {
+	return f.execErr
 }
 
 func TestHealthOK(t *testing.T) {
@@ -261,7 +301,6 @@ func TestEventsStream(t *testing.T) {
 	errCh := make(chan error)
 	evCh <- events.Message{Type: events.ContainerEventType, Action: "start", ID: "abc123"}
 	close(evCh)
-	close(errCh)
 
 	s := NewServer(config.Config{ListenAddr: "127.0.0.1:0"}, &fakeDocker{eventsCh: evCh, eventsErr: errCh}, nil)
 	req := httptest.NewRequest(http.MethodGet, "/events", nil)

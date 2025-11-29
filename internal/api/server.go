@@ -24,12 +24,14 @@ import (
 
 // Server hosts the HTTP API for DockerVision.
 type Server struct {
-	cfg      config.Config
-	docker   docker.Client
-	logger   *slog.Logger
-	mux      *http.ServeMux
-	streams  map[string]context.CancelFunc
-	streamMu sync.Mutex
+	cfg        config.Config
+	docker     docker.Client
+	logger     *slog.Logger
+	mux        *http.ServeMux
+	streams    map[string]context.CancelFunc
+	streamData map[string]*execStream
+	streamMu   sync.Mutex
+	wsLimit    int
 }
 
 // NewServer wires routes with dependencies.
@@ -38,11 +40,13 @@ func NewServer(cfg config.Config, d docker.Client, logger *slog.Logger) *Server 
 		logger = slog.New(slog.NewTextHandler(io.Discard, nil))
 	}
 	s := &Server{
-		cfg:     cfg,
-		docker:  d,
-		logger:  logger,
-		mux:     http.NewServeMux(),
-		streams: make(map[string]context.CancelFunc),
+		cfg:        cfg,
+		docker:     d,
+		logger:     logger,
+		mux:        http.NewServeMux(),
+		streams:    make(map[string]context.CancelFunc),
+		streamData: make(map[string]*execStream),
+		wsLimit:    8,
 	}
 	s.routes()
 	return s
@@ -407,7 +411,22 @@ type wsMessage struct {
 	Params      map[string]any `json:"params,omitempty"`
 }
 
+type execStream struct {
+	stdin   io.Writer
+	resize  func(h, w uint)
+	writeMu sync.Mutex
+}
+
 func (s *Server) handleWebsocket(w http.ResponseWriter, r *http.Request) {
+	// basic connection limit
+	s.streamMu.Lock()
+	active := len(s.streams)
+	s.streamMu.Unlock()
+	if active >= s.wsLimit {
+		http.Error(w, "too many streams", http.StatusServiceUnavailable)
+		return
+	}
+
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		return
@@ -468,6 +487,8 @@ func (s *Server) handleWSCommand(ctx context.Context, msg wsMessage, send func(w
 		s.handleWSLogs(ctx, msg, streamID, send)
 	case "events":
 		s.handleWSEvents(ctx, msg, streamID, send)
+	case "exec":
+		s.handleWSExec(ctx, msg, streamID, send)
 	default:
 		send(wsMessage{Type: "error", StreamID: streamID, Data: map[string]any{"error": "unknown action"}})
 	}
@@ -613,6 +634,125 @@ func (s *Server) handleWSEvents(ctx context.Context, msg wsMessage, streamID str
 	}()
 }
 
+func (s *Server) handleWSExec(ctx context.Context, msg wsMessage, streamID string, send func(wsMessage)) {
+	id := msg.ContainerID
+	if id == "" {
+		send(wsMessage{Type: "error", StreamID: streamID, Data: map[string]any{"error": "containerId required"}})
+		return
+	}
+
+	env := []string{}
+	if envAny, ok := msg.Params["env"].([]any); ok {
+		for _, e := range envAny {
+			if str, ok := e.(string); ok {
+				env = append(env, str)
+			}
+		}
+	}
+
+	cmd := []string{}
+	if cAny, ok := msg.Params["cmd"].([]any); ok {
+		for _, e := range cAny {
+			if str, ok := e.(string); ok {
+				cmd = append(cmd, str)
+			}
+		}
+	}
+	if len(cmd) == 0 {
+		send(wsMessage{Type: "error", StreamID: streamID, Data: map[string]any{"error": "cmd required"}})
+		return
+	}
+
+	tty := parseBoolDefault(asString(msg.Params["tty"]), true)
+
+	execCtx, cancel := context.WithCancel(ctx)
+	s.setStream(streamID, cancel)
+
+	resp, err := s.docker.ContainerExecCreate(execCtx, id, types.ExecConfig{
+		AttachStdout: true,
+		AttachStderr: true,
+		AttachStdin:  true,
+		Tty:          tty,
+		Env:          env,
+		Cmd:          cmd,
+	})
+	if err != nil {
+		s.cancelStream(streamID)
+		send(wsMessage{Type: "error", StreamID: streamID, Data: map[string]any{"error": err.Error()}})
+		return
+	}
+
+	attach, err := s.docker.ContainerExecAttach(execCtx, resp.ID, types.ExecStartCheck{Tty: tty})
+	if err != nil {
+		s.cancelStream(streamID)
+		send(wsMessage{Type: "error", StreamID: streamID, Data: map[string]any{"error": err.Error()}})
+		return
+	}
+
+	s.setStreamData(streamID, &execStream{
+		stdin: attach.Conn,
+		resize: func(h, w uint) {
+			_ = s.docker.ContainerExecResize(execCtx, resp.ID, h, w)
+		},
+	})
+
+	send(wsMessage{Type: "ack", StreamID: streamID, Action: "exec"})
+
+	// read pump
+	go func() {
+		defer attach.Close()
+		buf := make([]byte, 2048)
+		for {
+			n, readErr := attach.Reader.Read(buf)
+			if n > 0 {
+				send(wsMessage{Type: "exec", StreamID: streamID, Data: map[string]any{"stdout": string(buf[:n])}})
+			}
+			if readErr != nil {
+				if !errors.Is(readErr, io.EOF) {
+					send(wsMessage{Type: "error", StreamID: streamID, Data: map[string]any{"error": readErr.Error()}})
+				}
+				s.cancelStream(streamID)
+				s.clearStreamData(streamID)
+				return
+			}
+		}
+	}()
+}
+
+func (s *Server) handleWSInput(msg wsMessage) {
+	s.streamMu.Lock()
+	data, ok := s.streamData[msg.StreamID]
+	s.streamMu.Unlock()
+	if !ok || data == nil {
+		return
+	}
+	if chunk, ok := msg.Data["chunk"].(string); ok {
+		data.writeMu.Lock()
+		_, _ = data.stdin.Write([]byte(chunk))
+		data.writeMu.Unlock()
+	}
+}
+
+func (s *Server) handleWSResize(msg wsMessage) {
+	s.streamMu.Lock()
+	data, ok := s.streamData[msg.StreamID]
+	s.streamMu.Unlock()
+	if !ok || data == nil {
+		return
+	}
+	h := uint(0)
+	w := uint(0)
+	if v, ok := msg.Data["height"].(float64); ok {
+		h = uint(v)
+	}
+	if v, ok := msg.Data["width"].(float64); ok {
+		w = uint(v)
+	}
+	if h > 0 && w > 0 && data.resize != nil {
+		data.resize(h, w)
+	}
+}
+
 func (s *Server) setStream(id string, cancel context.CancelFunc) {
 	s.streamMu.Lock()
 	defer s.streamMu.Unlock()
@@ -629,6 +769,7 @@ func (s *Server) cancelStream(id string) {
 		cancel()
 		delete(s.streams, id)
 	}
+	delete(s.streamData, id)
 }
 
 func (s *Server) cancelAllStreams() {
@@ -638,6 +779,21 @@ func (s *Server) cancelAllStreams() {
 		cancel()
 		delete(s.streams, id)
 	}
+	for id := range s.streamData {
+		delete(s.streamData, id)
+	}
+}
+
+func (s *Server) setStreamData(id string, data *execStream) {
+	s.streamMu.Lock()
+	defer s.streamMu.Unlock()
+	s.streamData[id] = data
+}
+
+func (s *Server) clearStreamData(id string) {
+	s.streamMu.Lock()
+	defer s.streamMu.Unlock()
+	delete(s.streamData, id)
 }
 
 func parseBoolDefault(val string, def bool) bool {

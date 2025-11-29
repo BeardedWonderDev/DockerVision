@@ -10,6 +10,7 @@ Local macOS agent that exposes a curated REST API for monitoring and controlling
 - Fetch container logs with tail/follow options.
 - Stream Docker events via SSE (`/events`) with optional filters.
 - WebSocket (`/ws`) bidirectional control: lifecycle commands plus streaming logs/events over a single socket.
+- Exec over WebSocket with stdin/stdout and resize support.
 
 ## Planned
 - Auth (bearer or mTLS) and optional TLS listener.

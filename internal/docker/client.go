@@ -24,6 +24,9 @@ type Client interface {
 	RestartContainer(ctx context.Context, id string, timeout *time.Duration) error
 	ContainerLogs(ctx context.Context, id string, opts container.LogsOptions) (io.ReadCloser, error)
 	Events(ctx context.Context, opts types.EventsOptions) (<-chan events.Message, <-chan error)
+	ContainerExecCreate(ctx context.Context, id string, opts types.ExecConfig) (types.IDResponse, error)
+	ContainerExecAttach(ctx context.Context, execID string, opts types.ExecStartCheck) (types.HijackedResponse, error)
+	ContainerExecResize(ctx context.Context, execID string, height, width uint) error
 	Close() error
 }
 
@@ -101,6 +104,18 @@ func (e *Engine) ContainerLogs(ctx context.Context, id string, opts container.Lo
 
 func (e *Engine) Events(ctx context.Context, opts types.EventsOptions) (<-chan events.Message, <-chan error) {
 	return e.cli.Events(ctx, opts)
+}
+
+func (e *Engine) ContainerExecCreate(ctx context.Context, id string, opts types.ExecConfig) (types.IDResponse, error) {
+	return e.cli.ContainerExecCreate(ctx, id, opts)
+}
+
+func (e *Engine) ContainerExecAttach(ctx context.Context, execID string, opts types.ExecStartCheck) (types.HijackedResponse, error) {
+	return e.cli.ContainerExecAttach(ctx, execID, opts)
+}
+
+func (e *Engine) ContainerExecResize(ctx context.Context, execID string, height, width uint) error {
+	return e.cli.ContainerExecResize(ctx, execID, container.ResizeOptions{Height: height, Width: width})
 }
 
 func (e *Engine) Close() error {
