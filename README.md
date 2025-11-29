@@ -9,6 +9,7 @@ Local macOS agent that exposes a curated REST API for monitoring and controlling
 - Start/stop/restart containers.
 - Fetch container logs with tail/follow options.
 - Stream Docker events via SSE (`/events`) with optional filters.
+- WebSocket (`/ws`) bidirectional control: lifecycle commands plus streaming logs/events over a single socket.
 
 ## Planned
 - Auth (bearer or mTLS) and optional TLS listener.
@@ -28,6 +29,7 @@ Environment variables:
 - `DV_AUTH_TOKEN` (optional)
 - `DV_TLS_CERT` / `DV_TLS_KEY` (optional TLS)
 - `DOCKER_HOST` (override socket)
+- `DV_AUTH_TOKEN` (if set, all protected routes and /ws require `Authorization: Bearer <token>`)
 
 ## Security Note
 The agent refuses to bind to a public address unless auth or TLS is configured. Keep it on loopback for local-only use.

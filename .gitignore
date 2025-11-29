@@ -16,4 +16,3 @@ coverage.out
 
 # Dependency management
 vendor/
-go.sum

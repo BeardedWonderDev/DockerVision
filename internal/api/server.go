@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/beardedwonder/dockervision-agent/internal/config"
@@ -18,14 +19,17 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
+	"github.com/gorilla/websocket"
 )
 
 // Server hosts the HTTP API for DockerVision.
 type Server struct {
-	cfg    config.Config
-	docker docker.Client
-	logger *slog.Logger
-	mux    *http.ServeMux
+	cfg      config.Config
+	docker   docker.Client
+	logger   *slog.Logger
+	mux      *http.ServeMux
+	streams  map[string]context.CancelFunc
+	streamMu sync.Mutex
 }
 
 // NewServer wires routes with dependencies.
@@ -34,10 +38,11 @@ func NewServer(cfg config.Config, d docker.Client, logger *slog.Logger) *Server 
 		logger = slog.New(slog.NewTextHandler(io.Discard, nil))
 	}
 	s := &Server{
-		cfg:    cfg,
-		docker: d,
-		logger: logger,
-		mux:    http.NewServeMux(),
+		cfg:     cfg,
+		docker:  d,
+		logger:  logger,
+		mux:     http.NewServeMux(),
+		streams: make(map[string]context.CancelFunc),
 	}
 	s.routes()
 	return s
@@ -58,6 +63,7 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("POST /containers/{id}/restart", s.requireTokenIfSet(s.handleRestartContainer))
 	s.mux.HandleFunc("GET /containers/{id}/logs", s.requireTokenIfSet(s.handleContainerLogs))
 	s.mux.HandleFunc("GET /events", s.requireTokenIfSet(s.handleEvents))
+	s.mux.HandleFunc("GET /ws", s.requireTokenIfSet(s.handleWebsocket))
 }
 
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
@@ -381,6 +387,259 @@ func sendSSE(w http.ResponseWriter, flusher http.Flusher, event string, data any
 	flusher.Flush()
 }
 
+// --- WebSocket bidirectional control ---
+
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		// Agent is local-first; allow same-machine connections.
+		return true
+	},
+}
+
+type wsMessage struct {
+	Type        string         `json:"type"` // cmd | close | ack | error | log | event | pong
+	Action      string         `json:"action,omitempty"`
+	ContainerID string         `json:"containerId,omitempty"`
+	StreamID    string         `json:"streamId,omitempty"`
+	Data        map[string]any `json:"data,omitempty"`
+	Params      map[string]any `json:"params,omitempty"`
+}
+
+func (s *Server) handleWebsocket(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		return
+	}
+	defer conn.Close()
+
+	// serialize writes to avoid concurrent write panics
+	writeMu := &sync.Mutex{}
+	send := func(msg wsMessage) {
+		writeMu.Lock()
+		defer writeMu.Unlock()
+		_ = conn.WriteJSON(msg)
+	}
+
+	// close all active streams on disconnect
+	defer s.cancelAllStreams()
+
+	conn.SetReadLimit(1 << 20) // 1MB
+	conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+	conn.SetPongHandler(func(string) error {
+		conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+		return nil
+	})
+
+	for {
+		var msg wsMessage
+		if err := conn.ReadJSON(&msg); err != nil {
+			if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
+				return
+			}
+			s.logger.Warn("ws read error", slog.String("error", err.Error()))
+			return
+		}
+
+		switch msg.Type {
+		case "ping":
+			send(wsMessage{Type: "pong"})
+		case "close":
+			s.cancelStream(msg.StreamID)
+		case "cmd":
+			s.handleWSCommand(r.Context(), msg, send)
+		default:
+			send(wsMessage{Type: "error", StreamID: msg.StreamID, Data: map[string]any{"error": "unknown message type"}})
+		}
+	}
+}
+
+func (s *Server) handleWSCommand(ctx context.Context, msg wsMessage, send func(wsMessage)) {
+	streamID := msg.StreamID
+	if streamID == "" {
+		streamID = strconv.FormatInt(time.Now().UnixNano(), 36)
+	}
+
+	switch msg.Action {
+	case "start", "stop", "restart":
+		s.handleWSLifecycle(ctx, msg, streamID, send)
+	case "logs":
+		s.handleWSLogs(ctx, msg, streamID, send)
+	case "events":
+		s.handleWSEvents(ctx, msg, streamID, send)
+	default:
+		send(wsMessage{Type: "error", StreamID: streamID, Data: map[string]any{"error": "unknown action"}})
+	}
+}
+
+func (s *Server) handleWSLifecycle(ctx context.Context, msg wsMessage, streamID string, send func(wsMessage)) {
+	id := msg.ContainerID
+	if id == "" {
+		send(wsMessage{Type: "error", StreamID: streamID, Data: map[string]any{"error": "containerId required"}})
+		return
+	}
+	cctx, cancel := context.WithTimeout(ctx, 6*time.Second)
+	defer cancel()
+
+	var err error
+	switch msg.Action {
+	case "start":
+		err = s.docker.StartContainer(cctx, id)
+	case "stop":
+		err = s.docker.StopContainer(cctx, id, nil)
+	case "restart":
+		err = s.docker.RestartContainer(cctx, id, nil)
+	}
+
+	if err != nil {
+		status := map[string]any{"error": err.Error()}
+		if client.IsErrNotFound(err) {
+			status["code"] = http.StatusNotFound
+		}
+		send(wsMessage{Type: "error", StreamID: streamID, Data: status})
+		return
+	}
+	send(wsMessage{Type: "ack", StreamID: streamID, Action: msg.Action})
+}
+
+func (s *Server) handleWSLogs(ctx context.Context, msg wsMessage, streamID string, send func(wsMessage)) {
+	id := msg.ContainerID
+	if id == "" {
+		send(wsMessage{Type: "error", StreamID: streamID, Data: map[string]any{"error": "containerId required"}})
+		return
+	}
+	params := msg.Params
+	lines := "100"
+	if v, ok := params["lines"].(string); ok && v != "" {
+		lines = v
+	}
+	stdout := parseBoolDefault(asString(params["stdout"]), true)
+	stderr := parseBoolDefault(asString(params["stderr"]), false)
+	follow := parseBoolDefault(asString(params["follow"]), true)
+	timestamps := parseBoolDefault(asString(params["timestamps"]), false)
+
+	opts := container.LogsOptions{
+		ShowStdout: stdout,
+		ShowStderr: stderr,
+		Follow:     follow,
+		Timestamps: timestamps,
+		Tail:       lines,
+	}
+
+	lctx, cancel := context.WithCancel(ctx)
+	s.setStream(streamID, cancel)
+
+	reader, err := s.docker.ContainerLogs(lctx, id, opts)
+	if err != nil {
+		s.cancelStream(streamID)
+		status := map[string]any{"error": err.Error()}
+		if client.IsErrNotFound(err) {
+			status["code"] = http.StatusNotFound
+		}
+		send(wsMessage{Type: "error", StreamID: streamID, Data: status})
+		return
+	}
+
+	send(wsMessage{Type: "ack", StreamID: streamID, Action: "logs"})
+
+	go func() {
+		defer reader.Close()
+		buf := make([]byte, 2048)
+		for {
+			n, readErr := reader.Read(buf)
+			if n > 0 {
+				send(wsMessage{Type: "log", StreamID: streamID, Data: map[string]any{"chunk": string(buf[:n])}})
+			}
+			if readErr != nil {
+				if !errors.Is(readErr, io.EOF) {
+					send(wsMessage{Type: "error", StreamID: streamID, Data: map[string]any{"error": readErr.Error()}})
+				}
+				s.cancelStream(streamID)
+				return
+			}
+		}
+	}()
+}
+
+func (s *Server) handleWSEvents(ctx context.Context, msg wsMessage, streamID string, send func(wsMessage)) {
+	args := filters.NewArgs()
+	if v, ok := msg.Params["type"].(string); ok && v != "" {
+		args.Add("type", v)
+	}
+	if v, ok := msg.Params["action"].(string); ok && v != "" {
+		args.Add("event", v)
+	}
+	if v, ok := msg.Params["container"].(string); ok && v != "" {
+		args.Add("container", v)
+	}
+	if v, ok := msg.Params["image"].(string); ok && v != "" {
+		args.Add("image", v)
+	}
+
+	evCtx, cancel := context.WithCancel(ctx)
+	s.setStream(streamID, cancel)
+
+	msgCh, errCh := s.docker.Events(evCtx, types.EventsOptions{
+		Filters: args,
+	})
+
+	send(wsMessage{Type: "ack", StreamID: streamID, Action: "events"})
+
+	go func() {
+		for {
+			select {
+			case ev := <-msgCh:
+				if ev.Type == "" && ev.Action == "" {
+					s.cancelStream(streamID)
+					return
+				}
+				send(wsMessage{Type: "event", StreamID: streamID, Data: map[string]any{
+					"type":   ev.Type,
+					"action": ev.Action,
+					"id":     ev.ID,
+				}})
+			case err := <-errCh:
+				if err != nil && !errors.Is(err, context.Canceled) {
+					send(wsMessage{Type: "error", StreamID: streamID, Data: map[string]any{"error": err.Error()}})
+				}
+				s.cancelStream(streamID)
+				return
+			case <-evCtx.Done():
+				s.cancelStream(streamID)
+				return
+			}
+		}
+	}()
+}
+
+func (s *Server) setStream(id string, cancel context.CancelFunc) {
+	s.streamMu.Lock()
+	defer s.streamMu.Unlock()
+	if old, ok := s.streams[id]; ok {
+		old()
+	}
+	s.streams[id] = cancel
+}
+
+func (s *Server) cancelStream(id string) {
+	s.streamMu.Lock()
+	defer s.streamMu.Unlock()
+	if cancel, ok := s.streams[id]; ok {
+		cancel()
+		delete(s.streams, id)
+	}
+}
+
+func (s *Server) cancelAllStreams() {
+	s.streamMu.Lock()
+	defer s.streamMu.Unlock()
+	for id, cancel := range s.streams {
+		cancel()
+		delete(s.streams, id)
+	}
+}
+
 func parseBoolDefault(val string, def bool) bool {
 	if val == "" {
 		return def
@@ -402,4 +661,20 @@ func parseTimeout(val string) *time.Duration {
 	}
 	d := time.Duration(secs) * time.Second
 	return &d
+}
+
+func asString(v any) string {
+	switch t := v.(type) {
+	case string:
+		return t
+	case bool:
+		if t {
+			return "true"
+		}
+		return "false"
+	case float64:
+		return strconv.FormatFloat(t, 'f', -1, 64)
+	default:
+		return ""
+	}
 }

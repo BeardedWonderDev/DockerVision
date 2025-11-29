@@ -17,23 +17,25 @@ import (
 	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/api/types/system"
 	"github.com/docker/docker/errdefs"
+	"github.com/gorilla/websocket"
 )
 
 type fakeDocker struct {
-	pingErr    error
-	info       system.Info
-	infoErr    error
-	list       []types.Container
-	listErr    error
-	inspect    types.ContainerJSON
-	inspectErr error
-	startErr   error
-	stopErr    error
-	restartErr error
-	logReader  io.ReadCloser
-	logErr     error
-	eventsCh   <-chan events.Message
-	eventsErr  <-chan error
+	pingErr     error
+	info        system.Info
+	infoErr     error
+	list        []types.Container
+	listErr     error
+	inspect     types.ContainerJSON
+	inspectErr  error
+	startErr    error
+	stopErr     error
+	restartErr  error
+	logReader   io.ReadCloser
+	logErr      error
+	eventsCh    <-chan events.Message
+	eventsErr   <-chan error
+	startCalled bool
 }
 
 func (f *fakeDocker) Ping(ctx context.Context) error {
@@ -64,6 +66,7 @@ func (f *fakeDocker) InspectContainer(ctx context.Context, id string) (types.Con
 }
 
 func (f *fakeDocker) StartContainer(ctx context.Context, id string) error {
+	f.startCalled = true
 	return f.startErr
 }
 
@@ -270,5 +273,71 @@ func TestEventsStream(t *testing.T) {
 	}
 	if !strings.Contains(strings.ToLower(rec.Body.String()), `"action":"start"`) {
 		t.Fatalf("expected event payload, got %q", rec.Body.String())
+	}
+}
+
+func TestWebsocketLifecycleStart(t *testing.T) {
+	fd := &fakeDocker{}
+	s := NewServer(config.Config{ListenAddr: "127.0.0.1:0"}, fd, nil)
+	server := httptest.NewServer(s.Handler())
+	defer server.Close()
+
+	u := "ws" + strings.TrimPrefix(server.URL, "http") + "/ws"
+	conn, _, err := websocket.DefaultDialer.Dial(u, nil)
+	if err != nil {
+		t.Fatalf("dial ws: %v", err)
+	}
+	defer conn.Close()
+
+	cmd := `{"type":"cmd","action":"start","containerId":"abc"}`
+	if err := conn.WriteMessage(websocket.TextMessage, []byte(cmd)); err != nil {
+		t.Fatalf("write: %v", err)
+	}
+
+	_, msg, err := conn.ReadMessage()
+	if err != nil {
+		t.Fatalf("read: %v", err)
+	}
+	if !strings.Contains(string(msg), `"ack"`) {
+		t.Fatalf("expected ack, got %s", string(msg))
+	}
+	if !fd.startCalled {
+		t.Fatalf("expected start to be called")
+	}
+}
+
+func TestWebsocketLogs(t *testing.T) {
+	fd := &fakeDocker{
+		logReader: io.NopCloser(strings.NewReader("hello\nworld\n")),
+	}
+	s := NewServer(config.Config{ListenAddr: "127.0.0.1:0"}, fd, nil)
+	server := httptest.NewServer(s.Handler())
+	defer server.Close()
+
+	u := "ws" + strings.TrimPrefix(server.URL, "http") + "/ws"
+	conn, _, err := websocket.DefaultDialer.Dial(u, nil)
+	if err != nil {
+		t.Fatalf("dial ws: %v", err)
+	}
+	defer conn.Close()
+
+	cmd := `{"type":"cmd","action":"logs","containerId":"abc","streamId":"s1","params":{"follow":false,"stdout":true,"lines":"10"}}`
+	if err := conn.WriteMessage(websocket.TextMessage, []byte(cmd)); err != nil {
+		t.Fatalf("write: %v", err)
+	}
+	// Expect ack then log chunk
+	_, msg1, err := conn.ReadMessage()
+	if err != nil {
+		t.Fatalf("read ack: %v", err)
+	}
+	if !strings.Contains(string(msg1), `"ack"`) {
+		t.Fatalf("expected ack, got %s", string(msg1))
+	}
+	_, msg2, err := conn.ReadMessage()
+	if err != nil {
+		t.Fatalf("read log: %v", err)
+	}
+	if !strings.Contains(string(msg2), "hello") {
+		t.Fatalf("expected log chunk, got %s", string(msg2))
 	}
 }
