@@ -146,6 +146,18 @@ var (
 		Help:    "HTTP request latency",
 		Buckets: prometheus.DefBuckets,
 	}, []string{"method", "path"})
+	wsActive = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "ws_active_streams",
+		Help: "Active websocket streams",
+	})
+	wsCreated = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "ws_streams_created_total",
+		Help: "Total websocket streams created",
+	})
+	wsErrors = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "ws_stream_errors_total",
+		Help: "Websocket stream errors",
+	})
 )
 
 type statusWriter struct {

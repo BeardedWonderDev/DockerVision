@@ -33,6 +33,7 @@ type Server struct {
 	streamData map[string]*execStream
 	streamMu   sync.Mutex
 	wsLimit    int
+	metrics    Metrics
 }
 
 // NewServer wires routes with dependencies.
@@ -48,6 +49,7 @@ func NewServer(cfg config.Config, d docker.Client, logger *slog.Logger) *Server 
 		streams:    make(map[string]context.CancelFunc),
 		streamData: make(map[string]*execStream),
 		wsLimit:    8,
+		metrics:    defaultMetrics(),
 	}
 	s.routes()
 	return s
@@ -70,9 +72,9 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("GET /events", s.requireTokenIfSet(s.handleEvents))
 	s.mux.HandleFunc("GET /ws", s.requireTokenIfSet(s.handleWebsocket))
 	if strings.TrimSpace(s.cfg.AuthToken) != "" {
-		s.mux.Handle("/metrics", s.requireTokenIfSetHandler(promhttp.Handler()))
+		s.mux.Handle("/metrics", s.requireTokenIfSetHandler(promhttp.HandlerFor(s.metrics.Registry, promhttp.HandlerOpts{})))
 	} else {
-		s.mux.Handle("/metrics", promhttp.Handler())
+		s.mux.Handle("/metrics", promhttp.HandlerFor(s.metrics.Registry, promhttp.HandlerOpts{}))
 	}
 }
 
@@ -446,12 +448,15 @@ func (s *Server) handleWebsocket(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "too many streams", http.StatusServiceUnavailable)
 		return
 	}
+	s.metrics.WSActive.Inc()
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
+		s.metrics.WSErrors.Inc()
 		return
 	}
 	defer conn.Close()
+	defer s.metrics.WSActive.Dec()
 
 	// serialize writes to avoid concurrent write panics
 	writeMu := &sync.Mutex{}
@@ -512,6 +517,7 @@ func (s *Server) handleWSCommand(ctx context.Context, msg wsMessage, send func(w
 	default:
 		send(wsMessage{Type: "error", StreamID: streamID, Data: map[string]any{"error": "unknown action"}})
 	}
+	s.metrics.WSCreated.Inc()
 }
 
 func (s *Server) handleWSLifecycle(ctx context.Context, msg wsMessage, streamID string, send func(wsMessage)) {
@@ -538,6 +544,7 @@ func (s *Server) handleWSLifecycle(ctx context.Context, msg wsMessage, streamID 
 		if client.IsErrNotFound(err) {
 			status["code"] = http.StatusNotFound
 		}
+		s.metrics.DockerFail.WithLabelValues("lifecycle").Inc()
 		send(wsMessage{Type: "error", StreamID: streamID, Data: status})
 		return
 	}
@@ -578,6 +585,7 @@ func (s *Server) handleWSLogs(ctx context.Context, msg wsMessage, streamID strin
 		if client.IsErrNotFound(err) {
 			status["code"] = http.StatusNotFound
 		}
+		s.metrics.DockerFail.WithLabelValues("logs").Inc()
 		send(wsMessage{Type: "error", StreamID: streamID, Data: status})
 		return
 	}
@@ -699,6 +707,7 @@ func (s *Server) handleWSExec(ctx context.Context, msg wsMessage, streamID strin
 	if err != nil {
 		s.cancelStream(streamID)
 		send(wsMessage{Type: "error", StreamID: streamID, Data: map[string]any{"error": err.Error()}})
+		s.metrics.DockerFail.WithLabelValues("exec").Inc()
 		return
 	}
 
