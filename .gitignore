@@ -1,0 +1,19 @@
+# Go
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+coverage.out
+
+# Editor
+.DS_Store
+.idea/
+.vscode/
+
+# Dependency management
+vendor/
+go.sum
