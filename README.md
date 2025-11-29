@@ -13,6 +13,8 @@ Local macOS agent that exposes a curated REST API for monitoring and controlling
 - Exec over WebSocket with stdin/stdout and resize support.
 - Optional TLS and mTLS (provide cert/key and client CA).
 - Prometheus metrics at `/metrics`; optional OpenTelemetry tracing via OTLP/HTTP.
+- launchd installer for macOS user agents.
+- `dvctl` CLI for local debugging (health, info, list, logs, start/stop/restart).
 
 ## Planned
 - Auth (bearer or mTLS) and optional TLS listener.
@@ -36,10 +38,25 @@ Environment variables:
 - `DV_AUTH_TOKEN` (if set, all protected routes and /ws require `Authorization: Bearer <token>`)
 - `DV_OTEL_ENDPOINT` (OTLP/HTTP tracing endpoint; optional)
 - `DV_OTEL_INSECURE=true` to disable TLS for OTLP
+- `DV_TLS_CLIENT_CA` (require client certs for mTLS)
 
 ## Metrics & Tracing
 - `/metrics` exposes Prometheus metrics (request counts, latencies). Protected by bearer token if configured.
 - Tracing: set `DV_OTEL_ENDPOINT` to enable OTLP/HTTP exporter; spans wrap HTTP handlers.
+
+## launchd install
+```bash
+make install   # builds binary to ~/Library/Application\ Support/DockerVision and loads plist
+make uninstall # unloads and removes plist/binary
+```
+
+## dvctl CLI
+```bash
+go run ./cmd/dvctl health
+go run ./cmd/dvctl list
+go run ./cmd/dvctl logs -id <container> -n 100
+DV_AUTH_TOKEN=token go run ./cmd/dvctl start -id <container>
+```
 
 ## Swift SDK
 Swift Package Manager package lives at `sdk/swift/DockerVisionSDK`.
