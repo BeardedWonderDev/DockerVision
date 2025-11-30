@@ -1,0 +1,3 @@
+module DockerVisionSDKPackageTests {
+    header "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDKPackageTests.build/include/DockerVisionSDKPackageTests-Swift.h"
+}

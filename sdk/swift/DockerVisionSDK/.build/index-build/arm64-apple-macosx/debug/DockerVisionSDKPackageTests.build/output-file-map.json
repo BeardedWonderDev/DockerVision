@@ -1,0 +1,12 @@
+{
+  "": {
+    "swift-dependencies": "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDKPackageTests.build/master.swiftdeps"
+  },
+  "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDKPackageTests.derived/runner.swift": {
+    "dependencies": "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDKPackageTests.build/runner.d",
+    "object": "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDKPackageTests.build/runner.swift.o",
+    "swiftmodule": "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDKPackageTests.build/runner~partial.swiftmodule",
+    "swift-dependencies": "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDKPackageTests.build/runner.swiftdeps",
+    "diagnostics": "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDKPackageTests.build/runner.dia"
+  }
+}

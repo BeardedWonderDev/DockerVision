@@ -1,0 +1,630 @@
+{
+  "builtTestProducts" : [
+    {
+      "binaryPath" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDKPackageTests.xctest/Contents/MacOS/DockerVisionSDKPackageTests",
+      "packagePath" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK",
+      "productName" : "DockerVisionSDKPackageTests"
+    }
+  ],
+  "copyCommands" : {
+
+  },
+  "explicitTargetDependencyImportCheckingMode" : {
+    "none" : {
+
+    }
+  },
+  "generatedSourceTargetSet" : [
+
+  ],
+  "pluginDescriptions" : [
+
+  ],
+  "swiftCommands" : {
+    "C.DockerVisionSDK-arm64-apple-macosx26.0-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDK.build/sources",
+      "importPath" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/Sources/DockerVisionSDK/DockerVisionClient.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDK.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "DockerVisionSDK",
+      "moduleOutputPath" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/Modules/DockerVisionSDK.swiftmodule",
+      "objects" : [
+        "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDK.build/DockerVisionClient.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx13.0",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-Onone",
+        "-enable-testing",
+        "-j8",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-emit-objc-header",
+        "-emit-objc-header-path",
+        "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDK.build/include/DockerVisionSDK-Swift.h",
+        "-swift-version",
+        "5",
+        "-Xfrontend",
+        "-experimental-lazy-typecheck",
+        "-Xfrontend",
+        "-experimental-skip-all-function-bodies",
+        "-Xfrontend",
+        "-experimental-allow-module-with-compiler-errors",
+        "-Xfrontend",
+        "-empty-abi-descriptor",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.0.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.0.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "dockervisionsdk"
+      ],
+      "outputFileMapPath" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDK.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/Modules/DockerVisionSDK.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : true,
+      "sources" : [
+        "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/Sources/DockerVisionSDK/DockerVisionClient.swift"
+      ],
+      "tempsPath" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDK.build",
+      "wholeModuleOptimization" : false
+    },
+    "C.DockerVisionSDKPackageTests-arm64-apple-macosx26.0-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDKPackageTests.build/sources",
+      "importPath" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDKPackageTests.derived/runner.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/Modules/DockerVisionSDKTests.swiftmodule"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDKPackageTests.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "DockerVisionSDKPackageTests",
+      "moduleOutputPath" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/Modules/DockerVisionSDKPackageTests.swiftmodule",
+      "objects" : [
+        "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDKPackageTests.build/runner.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx13.0",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-Onone",
+        "-enable-testing",
+        "-Xfrontend",
+        "-enable-cross-import-overlays",
+        "-j8",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-emit-objc-header",
+        "-emit-objc-header-path",
+        "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDKPackageTests.build/include/DockerVisionSDKPackageTests-Swift.h",
+        "-Xfrontend",
+        "-experimental-lazy-typecheck",
+        "-Xfrontend",
+        "-experimental-skip-all-function-bodies",
+        "-Xfrontend",
+        "-experimental-allow-module-with-compiler-errors",
+        "-Xfrontend",
+        "-empty-abi-descriptor",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.0.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.0.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "dockervisionsdk"
+      ],
+      "outputFileMapPath" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDKPackageTests.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/Modules/DockerVisionSDKPackageTests.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : true,
+      "sources" : [
+        "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDKPackageTests.derived/runner.swift"
+      ],
+      "tempsPath" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDKPackageTests.build",
+      "wholeModuleOptimization" : false
+    },
+    "C.DockerVisionSDKTests-arm64-apple-macosx26.0-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDKTests.build/sources",
+      "importPath" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/Tests/DockerVisionSDKTests/DockerVisionSDKTests.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/Modules/DockerVisionSDK.swiftmodule"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDKTests.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "DockerVisionSDKTests",
+      "moduleOutputPath" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/Modules/DockerVisionSDKTests.swiftmodule",
+      "objects" : [
+        "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDKTests.build/DockerVisionSDKTests.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx14.0",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-Onone",
+        "-enable-testing",
+        "-Xfrontend",
+        "-enable-cross-import-overlays",
+        "-j8",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-swift-version",
+        "5",
+        "-Xfrontend",
+        "-experimental-lazy-typecheck",
+        "-Xfrontend",
+        "-experimental-skip-all-function-bodies",
+        "-Xfrontend",
+        "-experimental-allow-module-with-compiler-errors",
+        "-Xfrontend",
+        "-empty-abi-descriptor",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.0.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.0.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "dockervisionsdk"
+      ],
+      "outputFileMapPath" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDKTests.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/Modules/DockerVisionSDKTests.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : true,
+      "sources" : [
+        "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/Tests/DockerVisionSDKTests/DockerVisionSDKTests.swift"
+      ],
+      "tempsPath" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDKTests.build",
+      "wholeModuleOptimization" : false
+    }
+  },
+  "swiftFrontendCommands" : {
+
+  },
+  "swiftTargetScanArgs" : {
+    "DockerVisionSDK" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "DockerVisionSDK",
+      "-package-name",
+      "dockervisionsdk",
+      "-c",
+      "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/Sources/DockerVisionSDK/DockerVisionClient.swift",
+      "-I",
+      "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx13.0",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-Onone",
+      "-enable-testing",
+      "-j8",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-emit-objc-header",
+      "-emit-objc-header-path",
+      "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDK.build/include/DockerVisionSDK-Swift.h",
+      "-swift-version",
+      "5",
+      "-Xfrontend",
+      "-experimental-lazy-typecheck",
+      "-Xfrontend",
+      "-experimental-skip-all-function-bodies",
+      "-Xfrontend",
+      "-experimental-allow-module-with-compiler-errors",
+      "-Xfrontend",
+      "-empty-abi-descriptor",
+      "-plugin-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.0.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.0.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "dockervisionsdk",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ],
+    "DockerVisionSDKPackageTests" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "DockerVisionSDKPackageTests",
+      "-package-name",
+      "dockervisionsdk",
+      "-c",
+      "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDKPackageTests.derived/runner.swift",
+      "-I",
+      "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx13.0",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-Onone",
+      "-enable-testing",
+      "-Xfrontend",
+      "-enable-cross-import-overlays",
+      "-j8",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-emit-objc-header",
+      "-emit-objc-header-path",
+      "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDKPackageTests.build/include/DockerVisionSDKPackageTests-Swift.h",
+      "-Xfrontend",
+      "-experimental-lazy-typecheck",
+      "-Xfrontend",
+      "-experimental-skip-all-function-bodies",
+      "-Xfrontend",
+      "-experimental-allow-module-with-compiler-errors",
+      "-Xfrontend",
+      "-empty-abi-descriptor",
+      "-plugin-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.0.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.0.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "dockervisionsdk",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ],
+    "DockerVisionSDKTests" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "DockerVisionSDKTests",
+      "-package-name",
+      "dockervisionsdk",
+      "-c",
+      "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/Tests/DockerVisionSDKTests/DockerVisionSDKTests.swift",
+      "-I",
+      "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx14.0",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-Onone",
+      "-enable-testing",
+      "-Xfrontend",
+      "-enable-cross-import-overlays",
+      "-j8",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-swift-version",
+      "5",
+      "-Xfrontend",
+      "-experimental-lazy-typecheck",
+      "-Xfrontend",
+      "-experimental-skip-all-function-bodies",
+      "-Xfrontend",
+      "-experimental-allow-module-with-compiler-errors",
+      "-Xfrontend",
+      "-empty-abi-descriptor",
+      "-plugin-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.0.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.0.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "dockervisionsdk",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ]
+  },
+  "targetDependencyMap" : {
+    "DockerVisionSDK" : [
+
+    ],
+    "DockerVisionSDKPackageTests" : [
+      "DockerVisionSDKTests",
+      "DockerVisionSDK"
+    ],
+    "DockerVisionSDKTests" : [
+      "DockerVisionSDK"
+    ]
+  },
+  "testDiscoveryCommands" : {
+
+  },
+  "testEntryPointCommands" : {
+
+  },
+  "traitConfiguration" : {
+    "default" : {
+
+    }
+  },
+  "writeCommands" : {
+    "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDK.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/Sources/DockerVisionSDK/DockerVisionClient.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDK.build/sources"
+    },
+    "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDKPackageTests.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDKPackageTests.derived/runner.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDKPackageTests.build/sources"
+    },
+    "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDKTests.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/Tests/DockerVisionSDKTests/DockerVisionSDKTests.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDKTests.build/sources"
+    },
+    "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt" : {
+      "alwaysOutOfDate" : true,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<swift-get-version>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+        }
+      ],
+      "outputFilePath" : "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+    }
+  }
+}
