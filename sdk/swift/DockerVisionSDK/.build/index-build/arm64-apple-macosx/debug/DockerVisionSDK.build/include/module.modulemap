@@ -1,3 +1,0 @@
-module DockerVisionSDK {
-    header "/Users/beardedwonder/Development/BeardedWonder/DockerVision/sdk/swift/DockerVisionSDK/.build/index-build/arm64-apple-macosx/debug/DockerVisionSDK.build/include/DockerVisionSDK-Swift.h"
-}
